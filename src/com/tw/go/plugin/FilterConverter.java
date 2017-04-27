@@ -87,8 +87,6 @@ public class FilterConverter {
             }
 
         }
-
         return new Filter(pipeline, stage, status);
     }
-
 }

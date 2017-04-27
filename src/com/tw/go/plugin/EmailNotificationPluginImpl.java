@@ -1,5 +1,16 @@
 package com.tw.go.plugin;
 
+import static java.util.Arrays.asList;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+
 import com.google.gson.GsonBuilder;
 import com.thoughtworks.go.plugin.api.GoApplicationAccessor;
 import com.thoughtworks.go.plugin.api.GoPlugin;
@@ -12,12 +23,6 @@ import com.thoughtworks.go.plugin.api.response.GoApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import com.tw.go.plugin.util.FieldValidator;
 import com.tw.go.plugin.util.JSONUtils;
-import org.apache.commons.io.IOUtils;
-
-import java.io.IOException;
-import java.util.*;
-
-import static java.util.Arrays.asList;
 
 @Extension
 public class EmailNotificationPluginImpl implements GoPlugin {
@@ -87,14 +92,15 @@ public class EmailNotificationPluginImpl implements GoPlugin {
         return renderJSON(SUCCESS_RESPONSE_CODE, response);
     }
 
-    private GoPluginApiResponse handleStageNotification(GoPluginApiRequest goPluginApiRequest) {
-        Map<String, Object> dataMap = (Map<String, Object>) JSONUtils.fromJSON(goPluginApiRequest.requestBody());
+    @SuppressWarnings("unchecked")
+	private GoPluginApiResponse handleStageNotification(GoPluginApiRequest goPluginApiRequest) {
+        Map<String, Object> currentPipelineDataMap = (Map<String, Object>) JSONUtils.fromJSON(goPluginApiRequest.requestBody());
 
         int responseCode = SUCCESS_RESPONSE_CODE;
         Map<String, Object> response = new HashMap<String, Object>();
         List<String> messages = new ArrayList<String>();
         try {
-            Map<String, Object> pipelineMap = (Map<String, Object>) dataMap.get("pipeline");
+            Map<String, Object> pipelineMap = (Map<String, Object>) currentPipelineDataMap.get("pipeline");
             Map<String, Object> stageMap = (Map<String, Object>) pipelineMap.get("stage");
 
 
@@ -106,7 +112,6 @@ public class EmailNotificationPluginImpl implements GoPlugin {
             String body = String.format("State: %s\nResult: %s\nCreate Time: %s\nLast Transition Time: %s", stageState, stageMap.get("result"), stageMap.get("create-time"), stageMap.get("last-transition-time"));
 
             PluginSettings pluginSettings = getPluginSettings();
-
 
             boolean matchesFilter = false;
 
@@ -137,10 +142,6 @@ public class EmailNotificationPluginImpl implements GoPlugin {
                     SMTPSettings settings = new SMTPSettings(pluginSettings.getSmtpHost(), pluginSettings.getSmtpPort(), pluginSettings.isTls(), pluginSettings.getSenderEmailId(), pluginSettings.getSmtpUsername(), pluginSettings.getSenderPassword());
                     new SMTPMailSender(settings).send(subject, body, receiverEmailId);
                 }
-
-                LOGGER.info("Successfully delivered an email.");
-            } else {
-                LOGGER.info("Skipped email as no filter matched this pipeline/stage/state");
             }
 
             response.put("status", "success");
@@ -188,7 +189,8 @@ public class EmailNotificationPluginImpl implements GoPlugin {
         return renderJSON(SUCCESS_RESPONSE_CODE, response);
     }
 
-    private GoPluginApiResponse handleValidatePluginSettingsConfiguration(GoPluginApiRequest goPluginApiRequest) {
+    @SuppressWarnings("unchecked")
+	private GoPluginApiResponse handleValidatePluginSettingsConfiguration(GoPluginApiRequest goPluginApiRequest) {
         Map<String, Object> responseMap = (Map<String, Object>) JSONUtils.fromJSON(goPluginApiRequest.requestBody());
         final Map<String, String> configuration = keyValuePairs(responseMap, "plugin-settings");
         List<Map<String, Object>> response = new ArrayList<Map<String, Object>>();
@@ -246,7 +248,8 @@ public class EmailNotificationPluginImpl implements GoPlugin {
         }
     }
 
-    public PluginSettings getPluginSettings() {
+    @SuppressWarnings("unchecked")
+	public PluginSettings getPluginSettings() {
         Map<String, Object> requestMap = new HashMap<String, Object>();
         requestMap.put("plugin-id", PLUGIN_ID);
         GoApiResponse response = goApplicationAccessor.submit(createGoApiRequest(GET_PLUGIN_SETTINGS, JSONUtils.toJSON(requestMap)));
@@ -265,7 +268,8 @@ public class EmailNotificationPluginImpl implements GoPlugin {
         return str == null || str.trim().isEmpty();
     }
 
-    private Map<String, String> keyValuePairs(Map<String, Object> map, String mainKey) {
+    @SuppressWarnings("unchecked")
+	private Map<String, String> keyValuePairs(Map<String, Object> map, String mainKey) {
         Map<String, String> keyValuePairs = new HashMap<String, String>();
         Map<String, Object> fieldsMap = (Map<String, Object>) map.get(mainKey);
         for (String field : fieldsMap.keySet()) {

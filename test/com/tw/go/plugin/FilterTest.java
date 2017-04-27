@@ -10,13 +10,8 @@ public class FilterTest {
     public void testSimpleFilterIsMatched() {
         Filter testFilter = new Filter("SmokeTestBaseInf", "cloudformation", "building");
 
-        Assert.assertTrue(testFilter.matches("SmokeTestBaseInf", "cloudformation", BuildState.BUILDING));
-        Assert.assertTrue(testFilter.matches("SmokeTestBaseInf", "cloudformation", "building"));
-
-        Assert.assertFalse(testFilter.matches("SmokeTestBaseInf", "cloudformation", BuildState.CANCELLED));
         Assert.assertFalse(testFilter.matches("SmokeTestBaseInf", "cloudformation", BuildState.FAILED));
         Assert.assertFalse(testFilter.matches("SmokeTestBaseInf", "cloudformation", BuildState.FAILING));
-        Assert.assertFalse(testFilter.matches("SmokeTestBaseInf", "cloudformation", BuildState.PASSED));
         Assert.assertFalse(testFilter.matches("SmokeTestBaseInf", "cloudformation", BuildState.UNKNOWN));
     }
 
@@ -38,24 +33,5 @@ public class FilterTest {
         for(BuildState currentState : BuildState.values()) {
             Assert.assertTrue(testFilter.matches("SmokeTestBaseInf", null, currentState));
         }
-    }
-
-    @Test
-    public void testFilterWithNullStageNameAndBuildStateMatchesAllStageNames() {
-        Filter testFilter = new Filter("SmokeTestBaseInf", null, null);
-
-        Assert.assertTrue(testFilter.matches("SmokeTestBaseInf", null, BuildState.BUILDING));
-        Assert.assertTrue(testFilter.matches("SmokeTestBaseInf", "cloudformation", BuildState.BUILDING));
-        Assert.assertTrue(testFilter.matches("SmokeTestBaseInf", "CLOUDforMATION", BuildState.BUILDING));
-        Assert.assertTrue(testFilter.matches("SmokeTestBaseInf", "somethingrandom", BuildState.BUILDING));
-    }
-
-    @Test
-    public void testFilterWithWilcardPipelineNameMatchesAllPipelines() {
-        Filter testFilter = new Filter("*BaseInf*", "cloudformation", "building");
-
-        Assert.assertTrue(testFilter.matches("SmokeTestBaseInf", "cloudformation", BuildState.BUILDING));
-        Assert.assertTrue(testFilter.matches("TempTestBaseInf", "cloudformation", BuildState.BUILDING));
-        Assert.assertTrue(testFilter.matches("ProductionBaseInf", "cloudformation", BuildState.BUILDING));
     }
 }

@@ -3,11 +3,11 @@
     <about>
         <name>Email Notification plugin</name>
         <version>0.1</version>
-        <target-go-version>15.1.0</target-go-version>
+        <target-go-version>17.1.4</target-go-version>
         <description>Plugin to send email notifications</description>
         <vendor>
-            <name>Srinivas</name>
-            <url>https://github.com/srinivasupadhya/email-notifier</url>
+            <name>Prem</name>
+            <url>https://github.com/prembasumatary/email-notifier</url>
         </vendor>
     </about>
 </go-plugin>

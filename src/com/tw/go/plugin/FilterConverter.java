@@ -85,8 +85,8 @@ public class FilterConverter {
             if(filterConfigParts.length > 2) {
                 status = filterConfigParts[2];
             }
-
         }
+
         return new Filter(pipeline, stage, status);
     }
 }

@@ -108,43 +108,46 @@ public class EmailNotificationPluginImpl implements GoPlugin {
             String stageName = (String) stageMap.get("name");
             String stageState = (String) stageMap.get("state");
 
-            String subject = String.format("%s/%s is/has %s", pipelineName, stageName, stageState);
-            String body = String.format("State: %s\nResult: %s\nCreate Time: %s\nLast Transition Time: %s", stageState, stageMap.get("result"), stageMap.get("create-time"), stageMap.get("last-transition-time"));
+            //run only if its failed, don't care about other statuses
+            if(stageState != null && stageState.equalsIgnoreCase("failed")){
+            	String subject = String.format("%s/%s is/has %s", pipelineName, stageName, stageState);
+                String body = String.format("State: %s\nResult: %s\nCreate Time: %s\nLast Transition Time: %s", stageState, stageMap.get("result"), stageMap.get("create-time"), stageMap.get("last-transition-time"));
 
-            PluginSettings pluginSettings = getPluginSettings();
+                PluginSettings pluginSettings = getPluginSettings();
 
-            boolean matchesFilter = false;
+                boolean matchesFilter = false;
 
-            List<Filter> filterList = pluginSettings.getFilterList();
+                List<Filter> filterList = pluginSettings.getFilterList();
 
-            if(filterList.isEmpty()) {
-                matchesFilter = true;
-            } else {
-                for(Filter filter : filterList) {
-                    if(filter.matches(pipelineName, stageName, stageState)) {
-                        matchesFilter = true;
+                if(filterList.isEmpty()) {
+                    matchesFilter = true;
+                } else {
+                    for(Filter filter : filterList) {
+                        if(filter.matches(pipelineName, stageName, stageState)) {
+                            matchesFilter = true;
+                        }
+                    }
+                }
+
+                if(matchesFilter) {
+                    LOGGER.info("Sending Email for " + subject);
+
+                    String receiverEmailIdString = pluginSettings.getReceiverEmailId();
+
+                    String[] receiverEmailIds = new String[]{receiverEmailIdString};
+
+                    if (receiverEmailIdString.contains(",")) {
+                        receiverEmailIds = receiverEmailIdString.split(",");
+                    }
+
+                    for (String receiverEmailId : receiverEmailIds) {
+                        SMTPSettings settings = new SMTPSettings(pluginSettings.getSmtpHost(), pluginSettings.getSmtpPort(), pluginSettings.isTls(), pluginSettings.getSenderEmailId(), pluginSettings.getSmtpUsername(), pluginSettings.getSenderPassword());
+                        new SMTPMailSender(settings).send(subject, body, receiverEmailId);
                     }
                 }
             }
-
-            if(matchesFilter) {
-                LOGGER.info("Sending Email for " + subject);
-
-                String receiverEmailIdString = pluginSettings.getReceiverEmailId();
-
-                String[] receiverEmailIds = new String[]{receiverEmailIdString};
-
-                if (receiverEmailIdString.contains(",")) {
-                    receiverEmailIds = receiverEmailIdString.split(",");
-                }
-
-                for (String receiverEmailId : receiverEmailIds) {
-                    SMTPSettings settings = new SMTPSettings(pluginSettings.getSmtpHost(), pluginSettings.getSmtpPort(), pluginSettings.isTls(), pluginSettings.getSenderEmailId(), pluginSettings.getSmtpUsername(), pluginSettings.getSenderPassword());
-                    new SMTPMailSender(settings).send(subject, body, receiverEmailId);
-                }
-            }
-
             response.put("status", "success");
+            
         } catch (Exception e) {
             LOGGER.warn("Error occurred while trying to deliver an email.", e);
 
